@@ -11,7 +11,7 @@ import { invalidateAll } from '../utils/appraisalCache';
 import { asyncHandler } from '../utils/asyncHandler';
 import { registerWebhook, getWebhooks, getDeliveryLogs, deleteWebhook } from '../webhooks';
 import { timeoutMiddleware } from '../middleware/timeout';
-import { writeLimiter } from '../middleware/rateLimit';
+import { writeLimiter, readLimiter } from '../middleware/rateLimit';
 import rateLimit from 'express-rate-limit';
 import { deprecationHeadersWhen } from '../middleware/deprecation';
 import { fireAlert } from '../utils/alerting';
@@ -274,6 +274,7 @@ v1Router.post(
 
 v1Router.get(
   '/loan/:id',
+  readLimiter,
   asyncHandler(async (req: Request, res: Response) => {
     const result = await getLoanOnChain(req.params.id as string);
     res.json(result);
@@ -282,13 +283,14 @@ v1Router.get(
 
 v1Router.get(
   '/health/:loanId',
+  readLimiter,
   asyncHandler(async (req: Request, res: Response) => {
     const result = await getHealthFactor(req.params.loanId as string);
     res.json(result);
   })
 );
 
-v1Router.get('/collateral/:id', (req: Request, res: Response) => {
+v1Router.get('/collateral/:id', readLimiter, (req: Request, res: Response) => {
   const record = getCollateralById(req.params.id as string);
   if (!record) {
     return res.status(404).json({ error: 'Collateral not found' });
@@ -298,6 +300,7 @@ v1Router.get('/collateral/:id', (req: Request, res: Response) => {
 
 v1Router.get(
   '/loans',
+  readLimiter,
   deprecationHeadersWhen(
     (req) =>
       req.query.page === undefined &&
@@ -354,11 +357,11 @@ v1Router.post(
   }
 );
 
-v1Router.get('/admin/webhooks', (_req: Request, res: Response) => {
+v1Router.get('/admin/webhooks', readLimiter, (_req: Request, res: Response) => {
   res.json(getWebhooks());
 });
 
-v1Router.get('/admin/webhooks/logs', (_req: Request, res: Response) => {
+v1Router.get('/admin/webhooks/logs', readLimiter, (_req: Request, res: Response) => {
   res.json(getDeliveryLogs());
 });
 
@@ -440,7 +443,7 @@ v1Router.get(
   })
 );
 
-v1Router.get('/settings/:wallet', (req: Request, res: Response) => {
+v1Router.get('/settings/:wallet', readLimiter, (req: Request, res: Response) => {
   const wallet = req.params.wallet as string;
   const existing = settingsStore.get(wallet);
   if (!existing) {

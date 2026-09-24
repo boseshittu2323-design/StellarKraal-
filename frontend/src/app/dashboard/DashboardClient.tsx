@@ -4,13 +4,10 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { GlossaryTerm } from "@/components/GlossaryTerm";
-import WalletConnect from "@/components/WalletConnect";
 import CollateralCard from "@/components/CollateralCard";
-import TransactionHistory from "@/components/TransactionHistory";
 import SkeletonHealthDashboard from "@/components/SkeletonHealthDashboard";
 import SkeletonLoanCard from "@/components/SkeletonLoanCard";
 import HelpMenu from "@/components/HelpMenu";
-import OnboardingModal from "@/components/OnboardingModal";
 import OnboardingChecklist from "@/components/OnboardingChecklist";
 import { useHealthFactor } from "@/hooks/useHealthFactor";
 import { useOnboarding } from "@/hooks/useOnboarding";
@@ -22,7 +19,9 @@ const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 // ── Lazy-loaded heavy components ─────────────────────────────────────────────
 // Using next/dynamic with ssr:false prevents hydration mismatches for
-// canvas/SVG-heavy components. Skeleton fallbacks maintain layout stability.
+// canvas/SVG-heavy components and reduces the initial JS bundle size.
+// Skeleton fallbacks maintain layout stability while chunks load.
+// Closes #1070
 
 const HealthGauge = dynamic(() => import("@/components/HealthGauge"), {
   ssr: false,
@@ -42,26 +41,17 @@ const RepayPanel = dynamic(() => import("@/components/RepayPanel"), {
   loading: () => <SkeletonLoanCard />,
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-
-// ── Lazy-loaded heavy components ─────────────────────────────────────────────
-// Using next/dynamic with ssr:false prevents hydration mismatches for
-// canvas/SVG-heavy components. Skeleton fallbacks maintain layout stability.
-
-const HealthGauge = dynamic(() => import("@/components/HealthGauge"), {
+const TransactionHistory = dynamic(() => import("@/components/TransactionHistory"), {
   ssr: false,
-  loading: () => <SkeletonHealthDashboard />,
+  loading: () => <SkeletonLoanCard />,
 });
 
-const LoanRepaymentCalculator = dynamic(
-  () => import("@/components/LoanRepaymentCalculator"),
-  {
-    ssr: false,
-    loading: () => <SkeletonLoanCard />,
-  },
-);
+const OnboardingModal = dynamic(() => import("@/components/OnboardingModal"), {
+  ssr: false,
+  loading: () => null,
+});
 
-const RepayPanel = dynamic(() => import("@/components/RepayPanel"), {
+const WalletConnect = dynamic(() => import("@/components/WalletConnect"), {
   ssr: false,
   loading: () => <SkeletonLoanCard />,
 });
