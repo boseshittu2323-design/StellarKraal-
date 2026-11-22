@@ -63,15 +63,8 @@ variable "backup_kms_key_arn" {
   default     = ""
 }
 
-# ── ALB / ACM variables (issue #1526) ─────────────────────────────────────────
-
-variable "domain_name" {
-  description = "Primary domain name for the ACM certificate (e.g. stellarkraal.io)"
+variable "image_tag" {
+  description = "Container image tag for stellarkraal-backend and stellarkraal-frontend. Must match IMAGE_TAG used by docker-compose."
   type        = string
-}
-
-variable "route53_zone_id" {
-  description = "Route 53 hosted zone ID for automatic DNS validation of the ACM certificate. Leave empty to manage DNS validation records manually."
-  type        = string
-  default     = ""
+  default     = "latest"
 }
